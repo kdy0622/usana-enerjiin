@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import SectionTitle from '../components/UI/SectionTitle';
 import Button from '../components/UI/Button';
 import { CONTACT_BG } from '../images/assets';
-import { Phone, Mail, MessageCircle, Plus, Minus, CheckCircle2, Globe } from 'lucide-react';
+import { Phone, Mail, MessageCircle, Plus, Minus, CheckCircle2, Globe, Copy } from 'lucide-react';
 
 const FAQItem = ({ question, answer }: { question: string; answer: string }) => {
   const [isOpen, setIsOpen] = useState(false);
@@ -31,13 +31,36 @@ const FAQItem = ({ question, answer }: { question: string; answer: string }) => 
 const ContactPage: React.FC = () => {
   const [formStatus, setFormStatus] = useState<'idle' | 'submitting' | 'success'>('idle');
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setFormStatus('submitting');
-    // Simulate API call
+    
+    const formData = new FormData(e.currentTarget);
+    const name = formData.get('name');
+    const contact = formData.get('contact');
+    const region = formData.get('region');
+    const interest = formData.get('interest');
+    const message = formData.get('message');
+
+    const formattedMessage = `[상담 신청]
+성함: ${name}
+연락처: ${contact}
+거주 지역: ${region}
+관심 분야: ${interest}
+문의 내용: ${message}`;
+
+    try {
+      await navigator.clipboard.writeText(formattedMessage);
+      // alert("상담 내용이 클립보드에 복사되었습니다. 오픈채팅방에 붙여넣기 해주세요.");
+    } catch (err) {
+      console.error('클립보드 복사 실패:', err);
+    }
+
+    // 약간의 딜레이 후 카카오톡 열기 및 상태 변경
     setTimeout(() => {
-      setFormStatus('success');
-    }, 1500);
+        window.open('https://open.kakao.com/o/sW0UXs3h', '_blank');
+        setFormStatus('success');
+    }, 500);
   };
 
   return (
@@ -136,42 +159,41 @@ const ContactPage: React.FC = () => {
               <h3 className="text-2xl font-bold mb-6 text-gray-800">상담 신청서</h3>
               {formStatus === 'success' ? (
                 <div className="text-center py-12">
-                  <div className="w-16 h-16 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <CheckCircle2 size={32} />
+                  <div className="w-16 h-16 bg-yellow-100 text-yellow-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <Copy size={32} />
                   </div>
-                  <h4 className="text-xl font-bold text-gray-800 mb-2">신청이 완료되었습니다!</h4>
-                  <p className="text-gray-600 mb-1">신청해주신 내용은 담당자에게 전송되었습니다.</p>
-                  <p className="text-gray-500 text-sm mb-6">
-                    (문자: 010-4729-8888 / 이메일: hji01047298888@gmail.com)
-                  </p>
+                  <h4 className="text-xl font-bold text-gray-800 mb-2">내용이 복사되었습니다!</h4>
+                  <p className="text-gray-600 mb-1">새로 열린 카카오톡 오픈채팅방에</p>
+                  <p className="text-gray-600 mb-6 font-bold underline">내용을 붙여넣기(Ctrl+V) 하여 전송해주세요.</p>
+                  
                   <button 
                     onClick={() => setFormStatus('idle')}
                     className="text-primary font-medium hover:underline"
                   >
-                    다시 작성하기
+                    새로운 작성하기
                   </button>
                 </div>
               ) : (
                 <form onSubmit={handleSubmit} className="space-y-6">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">성함</label>
-                    <input required type="text" className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all" placeholder="홍길동" />
+                    <input required name="name" type="text" className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all" placeholder="홍길동" />
                   </div>
                   
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                        <label className="block text-sm font-medium text-gray-700 mb-1">연락처</label>
-                       <input required type="tel" className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary outline-none" placeholder="010-0000-0000" />
+                       <input required name="contact" type="tel" className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary outline-none" placeholder="010-0000-0000" />
                     </div>
                     <div>
                        <label className="block text-sm font-medium text-gray-700 mb-1">거주 지역</label>
-                       <input type="text" className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary outline-none" placeholder="서울 강남구" />
+                       <input name="region" type="text" className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary outline-none" placeholder="서울 강남구" />
                     </div>
                   </div>
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">관심 분야</label>
-                    <select className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary outline-none">
+                    <select name="interest" className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary outline-none">
                       <option>비즈니스/부업 문의</option>
                       <option>제품 구매/섭취 문의</option>
                       <option>기타 문의</option>
@@ -180,11 +202,11 @@ const ContactPage: React.FC = () => {
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">문의 내용</label>
-                    <textarea rows={4} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary outline-none" placeholder="궁금하신 내용을 자유롭게 적어주세요."></textarea>
+                    <textarea name="message" rows={4} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary outline-none" placeholder="궁금하신 내용을 자유롭게 적어주세요."></textarea>
                   </div>
 
                   <div className="bg-blue-50 p-3 rounded-lg text-sm text-blue-800 mb-4">
-                    <p>※ 작성하신 내용은 담당자의 <strong>문자(010-4729-8888)</strong>와 <strong>이메일(hji01047298888@gmail.com)</strong>로 안내됩니다.</p>
+                    <p>※ 상담 신청을 누르면 <strong>내용이 복사</strong>되고 <strong>카카오톡 오픈채팅</strong>이 열립니다.</p>
                   </div>
 
                   <Button 
@@ -193,7 +215,7 @@ const ContactPage: React.FC = () => {
                     disabled={formStatus === 'submitting'}
                     className={formStatus === 'submitting' ? 'opacity-70 cursor-not-allowed' : ''}
                   >
-                    {formStatus === 'submitting' ? '전송 중...' : '상담 신청하기'}
+                    {formStatus === 'submitting' ? '처리 중...' : '상담 신청하기 (카카오톡 연결)'}
                   </Button>
                 </form>
               )}
